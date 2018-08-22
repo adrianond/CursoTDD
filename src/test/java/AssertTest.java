@@ -28,10 +28,14 @@ public class AssertTest {
 		Usuario u2 = new Usuario("Usuario 1");
 		Usuario u3 = null;
 		
+		Assert.assertEquals(u1.getNome(), u2.getNome());
+		
 		Assert.assertEquals(u1, u2);
 		
 		Assert.assertSame(u2, u2);
 		Assert.assertNotSame(u1, u2);
+		
+		Assert.assertNotSame(u1.getNome(), u2.getNome());
 		
 		Assert.assertNull(u3);
 		Assert.assertNotNull(u2);
