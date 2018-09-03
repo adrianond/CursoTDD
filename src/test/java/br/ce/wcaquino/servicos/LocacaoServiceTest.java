@@ -7,6 +7,7 @@ import static br.ce.wcaquino.utils.DataUtils.obterDataComDiferencaDias;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -20,14 +21,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
+import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.builders.UsuarioBuilder;
+import br.ce.wcaquino.dao.LocacaoDAO;
+import br.ce.wcaquino.dao.LocacaoDAOFake;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
-import br.ce.wcaquino.matchers.DiaSemanaMatcher;
 import br.ce.wcaquino.matchers.MatchersProprios;
 import br.ce.wcaquino.utils.DataUtils;
 
@@ -35,6 +39,8 @@ public class LocacaoServiceTest {
 
 	private LocacaoService service;
 	private Usuario user = null;
+	private SPCService spc;
+	private LocacaoDAO dao;
 	
 	@Rule
 	public ErrorCollector error = new ErrorCollector();
@@ -45,10 +51,16 @@ public class LocacaoServiceTest {
 	@Before
 	public void setup(){
 		service = new LocacaoService();
-		//user = new Usuario("Usuario 1");
+//		LocacaoDAO dao = new LocacaoDAOFake();
+		
+		dao = Mockito.mock(LocacaoDAOFake.class);
+		spc = Mockito.mock(SPCService.class);
+		//user = new Usuario("Usuario 1")
 
 //      usando padrão java builder			
 		 user = UsuarioBuilder.umUsuario().agora();
+		 service.setLocacaoDao(dao);
+		 service.setSPCService(spc);
 	}
 	
 	@Test
@@ -83,9 +95,9 @@ public class LocacaoServiceTest {
 		
 		//acao
 		try {
-			service.alugarFilme(user, filmes);
+			service.alugarFilme(null, filmes);
 //          Senão lançar a exceção, lança uma fail(), e quebra o teste			
-			//Assert.fail();
+			Assert.fail();
 		} catch (LocadoraException e) {
 			assertThat(e.getMessage(), is("Usuario vazio"));
 			Assert.assertEquals(e.getMessage(), "Usuario vazio");
@@ -96,7 +108,7 @@ public class LocacaoServiceTest {
 	public void naoDeveAlugarFilmeSemFilme() throws FilmeSemEstoqueException, LocadoraException{
 		
 		exception.expect(LocadoraException.class);
-		exception.expectMessage("Filme vazio");
+		//exception.expectMessage("Filme vazio");
 		
 		//acao
 		service.alugarFilme(user, null);
@@ -161,7 +173,24 @@ public class LocacaoServiceTest {
 //      UTILIZO MEU PRÓPRIO MACHER PARA O TESTE      
 //      retorno.getDataRetorno() - fixo no código = d+1 /segundo parametro ja passo do dia seguinte    
 //         assertThat(retorno.getDataRetorno(), MatchersProprios.caiEm(Calendar.FRIDAY));
-        
-       
+	}
+	
+	@Test
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException, LocadoraException{
+		//cenario
+		Usuario usuario = UsuarioBuilder.umUsuario().agora();
+		Usuario usuario2 =UsuarioBuilder.umUsuario().comNome("Usuario 2").agora();
+		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
+		
+		when(spc.possuiNegativacao(usuario)).thenReturn(true);
+//		when(spc.possuiNegativacao(usuario2)).thenReturn(true);
+		
+//      deve lançar exceção, senão teste não passa		
+		exception.expect(LocadoraException.class);
+		//exception.expectMessage("Usuário Negativado");
+		
+		//acao
+//		service.alugarFilme(usuario, filmes);
+		service.alugarFilme(usuario2, filmes);
 	}
 }

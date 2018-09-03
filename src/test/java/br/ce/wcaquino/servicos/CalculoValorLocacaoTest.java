@@ -13,8 +13,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
+import br.ce.wcaquino.dao.LocacaoDAO;
+import br.ce.wcaquino.dao.LocacaoDAOFake;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -28,6 +32,8 @@ import br.ce.wcaquino.exceptions.LocadoraException;
 public class CalculoValorLocacaoTest {
 
 	private LocacaoService service;
+	private SPCService spc;
+	private LocacaoDAO dao;
 	
 //  primeiro paramatro do array	que passamos os parametros para o teste - lista de filmes
 	@Parameter
@@ -44,6 +50,10 @@ public class CalculoValorLocacaoTest {
 	@Before
 	public void setup(){
 		service = new LocacaoService();
+		dao = Mockito.mock(LocacaoDAOFake.class);
+		spc = Mockito.mock(SPCService.class);
+		service.setLocacaoDao(dao);
+		service.setSPCService(spc);
 	}
 	
 //  usando o padrão builder	
