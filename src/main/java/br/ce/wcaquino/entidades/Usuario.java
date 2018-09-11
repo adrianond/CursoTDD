@@ -26,7 +26,7 @@ public class Usuario {
 		return result;
 	}
 
-	/*@Override
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -41,5 +41,12 @@ public class Usuario {
 		} else if (!nome.equals(other.nome))
 			return false;
 		return true;
-	}*/
+	}
+
+	@Override
+	public String toString() {
+		return "Usuario [nome=" + nome + "]";
+	}
+	
+	
 }
