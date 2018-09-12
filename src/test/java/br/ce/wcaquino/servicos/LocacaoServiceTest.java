@@ -187,20 +187,22 @@ public class LocacaoServiceTest {
 		Usuario usuario2 =UsuarioBuilder.umUsuario().comNome("Usuario 2").agora();
 		List<Filme> filmes = Arrays.asList(FilmeBuilder.umFilme().agora());
 		
-		when(spc.possuiNegativacao(usuario)).thenReturn(true);
+//		when(spc.possuiNegativacao(usuario)).thenReturn(true);
 //		when(spc.possuiNegativacao(usuario2)).thenReturn(true);
+		//qualquer usuário
+		when(spc.possuiNegativacao(Mockito.any(Usuario.class))).thenReturn(true);
 		
 		try {
 			//acao
-			service.alugarFilme(usuario, filmes);
-//			service.alugarFilme(usuario2, filmes);
+//			service.alugarFilme(usuario, filmes);
+			service.alugarFilme(usuario2, filmes);
 			Assert.fail();
 		}catch (LocadoraException e) {
 			Assert.assertEquals(e.getMessage(), "Usuário Negativado");
 		}
 		
-		verify(spc).possuiNegativacao(usuario);
-//		verify(spc).possuiNegativacao(usuario2);
+//		verify(spc).possuiNegativacao(usuario);
+		verify(spc).possuiNegativacao(usuario2);
 	}
 	
 	@Test
@@ -214,14 +216,33 @@ public class LocacaoServiceTest {
 		List<Locacao> locacoes = Arrays.asList(LocacaoBuilder.umLocacao()
 					.comUsuario(usuario)
 					.comDataRetorno(obterDataComDiferencaDias(2))
+					//não está com atraso
+//					.comDataRetorno(obterDataComDiferencaDias(-2))
+					.agora(),
+					//segundo objeto da lista - está notificando este usuário duas vezes 
+					 LocacaoBuilder.umLocacao()
+					.comUsuario(usuario)
+					.comDataRetorno(obterDataComDiferencaDias(2))
+					//não está com atraso
+//					.comDataRetorno(obterDataComDiferencaDias(-2))
 					.agora());
 		when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
 		
 		//acao
 		service.notificarAtrasos();
+	
+//      Se a data de retorna não estiver atrasada não notifica o usuário, logo quando chamar verify(email).notificarAtraso(usuario2) 
+//		para verificar se usuário foi notificado quebrará o teste, a não ser que eu dirá usando o mockito que tal situação unca debe acontecer - Mockito.never()
 		
 		//verificacao
-		verify(email).notificarAtraso(usuario2);
+//		verify(email).notificarAtraso(usuario2);
+		verify(email, Mockito.never()).notificarAtraso(usuario2);
 //		verify(email).notificarAtraso(usuario);
+		//usuário foi notificado 2 vezes
+		verify(email, Mockito.times(2)).notificarAtraso(usuario);
+		// não verifica se foi notifiacdo nenhum usuário a não ser o usuário 'usuario'
+		Mockito.verifyNoMoreInteractions(email);
+		//verifica se foi notificado algum usuario, qualquer usuário da instância de Usuario
+		verify(email, Mockito.times(2)).notificarAtraso(Mockito.any(Usuario.class));
 	}
 }
