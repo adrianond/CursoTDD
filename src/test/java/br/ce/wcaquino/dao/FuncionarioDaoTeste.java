@@ -34,6 +34,7 @@ public class FuncionarioDaoTeste {
 		
 		when(funcionario.buscarFuncionario("1234")).thenReturn(func);
 		
+		//não uso Mock
 //		f.RetornaTransacao(t);
 //		Funcionario f2 = f.buscarFuncionario("1234");
 

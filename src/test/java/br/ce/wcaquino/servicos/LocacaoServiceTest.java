@@ -44,6 +44,7 @@ public class LocacaoServiceTest {
 	private SPCService spc;
 	private LocacaoDAO dao;
 	private EmailService email;
+	private EmailServiceImpl emailImpl;
 	
 	@Rule
 	public ErrorCollector error = new ErrorCollector();
@@ -60,6 +61,7 @@ public class LocacaoServiceTest {
 		spc = Mockito.mock(SPCService.class);
 		//user = new Usuario("Usuario 1")
 		email = Mockito.mock(EmailService.class);
+		emailImpl  = Mockito.mock(EmailServiceImpl.class);
 
 //      usando padrão java builder			
 		 user = UsuarioBuilder.umUsuario().agora();
@@ -236,13 +238,14 @@ public class LocacaoServiceTest {
 		
 		//verificacao
 //		verify(email).notificarAtraso(usuario2);
-		verify(email, Mockito.never()).notificarAtraso(usuario2);
+		//verify(email, Mockito.never()).notificarAtraso(usuario2);
 //		verify(email).notificarAtraso(usuario);
 		//usuário foi notificado 2 vezes
 		verify(email, Mockito.times(2)).notificarAtraso(usuario);
+		//verify(emailImpl, Mockito.times(2)).notificarAtraso(usuario);
 		// não verifica se foi notifiacdo nenhum usuário a não ser o usuário 'usuario'
-		Mockito.verifyNoMoreInteractions(email);
+		//Mockito.verifyNoMoreInteractions(email);
 		//verifica se foi notificado algum usuario, qualquer usuário da instância de Usuario
-		verify(email, Mockito.times(2)).notificarAtraso(Mockito.any(Usuario.class));
+		//verify(email, Mockito.times(2)).notificarAtraso(Mockito.any(Usuario.class));
 	}
 }

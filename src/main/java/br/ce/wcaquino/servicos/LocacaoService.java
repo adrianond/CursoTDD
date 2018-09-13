@@ -17,9 +17,10 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoService {
 	
-	private LocacaoDAOFake dao; 
+	private LocacaoDAOFake dao;
 	private SPCService spcService;
 	private EmailService emailService;
+	private EmailServiceImpl emailServiceImpl = new EmailServiceImpl();
 	
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes) throws FilmeSemEstoqueException, LocadoraException {
 	
@@ -92,7 +93,8 @@ public class LocacaoService {
 		List<Locacao> locacoes = dao.obterLocacoesPendentes();
 		for(Locacao locacao: locacoes) {
 			if (locacao.getDataRetorno().after(new Date())) {
-				emailService.notificarAtraso(locacao.getUsuario());				
+				//emailServiceImpl.notificarAtraso(locacao.getUsuario());	
+				emailService.notificarAtraso(locacao.getUsuario());	
 			}
 		}
 	}
