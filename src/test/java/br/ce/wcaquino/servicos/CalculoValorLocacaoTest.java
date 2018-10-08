@@ -2,9 +2,11 @@ package br.ce.wcaquino.servicos;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -13,12 +15,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.dao.LocacaoDAO;
-import br.ce.wcaquino.dao.LocacaoDAOFake;
+import br.ce.wcaquino.dao.LocacaoDAOImpl;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -31,8 +35,11 @@ import br.ce.wcaquino.exceptions.LocadoraException;
 @RunWith(Parameterized.class)
 public class CalculoValorLocacaoTest {
 
+	@InjectMocks
 	private LocacaoService service;
+	@Mock
 	private SPCService spc;
+	@Mock
 	private LocacaoDAO dao;
 	
 //  primeiro paramatro do array	que passamos os parametros para o teste - lista de filmes
@@ -49,16 +56,11 @@ public class CalculoValorLocacaoTest {
 	
 	@Before
 	public void setup(){
-		service = new LocacaoService();
-		dao = Mockito.mock(LocacaoDAOFake.class);
-		spc = Mockito.mock(SPCService.class);
-		service.setLocacaoDao(dao);
-		service.setSPCService(spc);
+		MockitoAnnotations.initMocks(this);
 	}
 	
-//  usando o padrão builder	
-	private static Filme filme1 = FilmeBuilder.umFilme().setEstoque().agora();
-//	private static Filme filme1 = new Filme("Filme 1", 1, 4.0);
+    //usando o padrão builder	
+	private static Filme filme1 = new Filme("Filme 1", 1, 4.0);
 	private static Filme filme2 = new Filme("Filme 2", 1, 4.0);
 	private static Filme filme3 = new Filme("Filme 3", 1, 4.0);
 	private static Filme filme4 = new Filme("Filme 4", 1, 4.0);
@@ -86,16 +88,18 @@ public class CalculoValorLocacaoTest {
 		//cenario
 		Usuario usuario = new Usuario("Usuario 1");
 		
+		when(spc.possuiNegativacao(usuario)).thenReturn(false);
+		
 		//acao
-		Locacao resultado = service.alugarFilme(usuario, filmes);
+		Locacao resultado = service.alugarFilme(usuario, filmes, new Date(), 2);
 		
 		//verificacao
-		//assertThat(resultado.getValor(), is(valorLocacao));
+		assertThat(resultado.getValor(), is(valorLocacao));
 		System.out.println(cenario);
 	}
 	
 	public static void main(String[] args) {
-		Filme filme1 = FilmeBuilder.umFilme().setEstoque().agora();
-		System.out.println(filme1.getEstoque());
+		Filme filme = new FilmeBuilder().getFilme().build();
+		System.out.println(filme.getEstoque());
 	}
 }

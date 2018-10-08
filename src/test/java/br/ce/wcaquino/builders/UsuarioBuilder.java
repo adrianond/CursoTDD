@@ -5,22 +5,25 @@ import br.ce.wcaquino.entidades.Usuario;
 public class UsuarioBuilder {
 
 	private Usuario usuario;
+	private String nome;
 	
-	private UsuarioBuilder() {}
+	public UsuarioBuilder() {
+		
+	}
 	
-	public static UsuarioBuilder umUsuario(){
+	public UsuarioBuilder getUsuario(){
 		UsuarioBuilder builder = new UsuarioBuilder();
 		builder.usuario = new Usuario();
-		builder.usuario.setNome("Usuario 1");
+		builder.usuario.setNome(nome);
 		return builder;
 	}
 	
-	public UsuarioBuilder comNome(String nome) {
-		usuario.setNome(nome);
+	public UsuarioBuilder setNome(String nome) {
+		this.nome = nome;
 		return this;
 	}
 	
-	public Usuario agora(){
+	public Usuario build(){
 		return usuario;
 	}
 }

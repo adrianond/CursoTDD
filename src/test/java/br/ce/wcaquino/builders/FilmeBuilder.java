@@ -7,50 +7,47 @@ import buildermaster.BuilderMaster;
 public class FilmeBuilder {
 
 	private Filme filme;
+	private  String nome;
+	private  Integer estoque;
+	private  Double precoLocacao;
 	
-	private FilmeBuilder(){}
+	public FilmeBuilder() {
+		
+	}
 	
-	public static FilmeBuilder umFilme(){
+	public FilmeBuilder getFilme(){
 		FilmeBuilder builder = new FilmeBuilder();
 		builder.filme = new Filme();
-		builder.filme.setEstoque(2);
-		builder.filme.setNome("Filme 1");
-		builder.filme.setPrecoLocacao(4.0);
+		builder.filme.setEstoque(estoque);
+		builder.filme.setNome(nome);
+		builder.filme.setPrecoLocacao(precoLocacao);
 		return builder;
 	}
 	
-	public static FilmeBuilder umFilmeSemEstoque(){
-		FilmeBuilder builder = new FilmeBuilder();
-		builder.filme = new Filme();
-		builder.filme.setEstoque(0);
-		builder.filme.setNome("Filme 1");
-		builder.filme.setPrecoLocacao(4.0);
-		return builder;
-	}
-	
-	public FilmeBuilder semEstoque(){
-		filme.setEstoque(0);
+	public FilmeBuilder setEstoque(Integer estoque){
+		this.estoque = estoque;
 		return this;
 	}
 	
-	public FilmeBuilder setEstoque(){
-		filme.setEstoque(1);
+	public FilmeBuilder precoLocacao(Double precoLocacao) {
+		this.precoLocacao = precoLocacao;
 		return this;
 	}
 	
-	public FilmeBuilder comValor(Double valor) {
-		filme.setPrecoLocacao(valor);
+	public FilmeBuilder precoLocacao(String nome) {
+		this.nome = nome;
 		return this;
 	}
 	
-	public Filme agora(){
-		return filme;
+	public Filme build(){
+		return filme ;
 	}
 	
 	public static void main(String[] args) {
 		
-		FilmeBuilder filme = FilmeBuilder.umFilmeSemEstoque();
-		System.out.println(filme.agora().getPrecoLocacao());
+		Filme filme = new FilmeBuilder().getFilme().build();
+		filme.setPrecoLocacao(5.0);
+		System.out.println(filme.getPrecoLocacao());
 		
 		new BuilderMaster().gerarCodigoClasse(Locacao.class);
 	}

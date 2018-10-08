@@ -1,62 +1,63 @@
 package br.ce.wcaquino.builders;
 
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
-import br.ce.wcaquino.utils.DataUtils;
 
 
 public class LocacaoBuilder {
-	private Locacao elemento;
+	private Locacao locacao;
 	
-	private LocacaoBuilder(){}
+	private Usuario usuario;
+	private List<Filme> filmes;
+	private Date dataLocacao;
+	private Date dataRetorno;
+	private Double valor;
+	
+	public LocacaoBuilder(){
+		
+	}
 
-	public static LocacaoBuilder umLocacao() {
+	public LocacaoBuilder getLocacao() {
 		LocacaoBuilder builder = new LocacaoBuilder();
-		inicializarDadosPadroes(builder);
+		builder.locacao = new Locacao();
+		builder.locacao.setUsuario(usuario);
+		builder.locacao.setFilmes(filmes);
+		builder.locacao.setDataLocacao(dataLocacao);
+		builder.locacao.setDataRetorno(dataRetorno);
+		builder.locacao.setValor(valor);
 		return builder;
 	}
 
-	public static void inicializarDadosPadroes(LocacaoBuilder builder) {
-		builder.elemento = new Locacao();
-		Locacao elemento = builder.elemento;
-
-		
-		elemento.setUsuario(UsuarioBuilder.umUsuario().agora());
-		elemento.setFilmes(Arrays.asList(FilmeBuilder.umFilme().agora()));
-		elemento.setDataLocacao(new Date());
-		elemento.setDataRetorno(DataUtils.adicionarDias(new Date(), 1));
-		elemento.setValor(4.0);
-	}
-
-	public LocacaoBuilder comUsuario(Usuario param) {
-		elemento.setUsuario(param);
+	public LocacaoBuilder setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 		return this;
 	}
 
-	public LocacaoBuilder comListaFilmes(Filme... params) {
-		elemento.setFilmes(Arrays.asList(params));
+	public LocacaoBuilder setFilmes(List<Filme> filmes) {
+		this.filmes = filmes;
 		return this;
 	}
 
-	public LocacaoBuilder comDataLocacao(Date param) {
-		elemento.setDataLocacao(param);
+	public LocacaoBuilder setDataLocacao(Date dataLocacao) {
+		this.dataLocacao = dataLocacao;
 		return this;
 	}
 
-	public LocacaoBuilder comDataRetorno(Date param) {
-		elemento.setDataRetorno(param);
+	public LocacaoBuilder setDataRetorno(Date dataRetorno) {
+		this.dataRetorno = dataRetorno;
 		return this;
 	}
 
-	public LocacaoBuilder comValor(Double param) {
-		elemento.setValor(param);
+	public LocacaoBuilder setValor(Double valor) {
+		this.valor = valor;
 		return this;
 	}
 
-	public Locacao agora() {
-		return elemento;
+	public Locacao build() {
+		return locacao;
 	}
 }

@@ -13,10 +13,6 @@ public class MatchersProprios {
 		return new DiaSemanaMatcher(diaSemana);
 	}
 	
-	public static DiaSemanaMatcher caiDiaSeguinte(){
-		return new DiaSemanaMatcher(Calendar.THURSDAY);
-	}
-	
 	public static DiaSemanaMatcher hojeMaiUmDia(Integer numero) {
 		Calendar calendar = Calendar.getInstance();
 		Date date =  DataUtils.obterDataComDiferencaDias(numero);

@@ -8,7 +8,7 @@ public class CalculadoraMockTest {
 	@Test
 	public void teste(){
 		Calculadora calc = Mockito.mock(Calculadora.class);
-		//quando houver 2 parametros, se mockar um parametro terá que mockar os demais, como neste caso que mocko os 2 parametros, se não mockar os 2 dará erro
+		//quando houver 2 parametros, se mockar um parametro com o matcher ( Mockito.anyInt()), terá que mockar os demais com matcher, se não mockar os 2 dará erro
 		//estou dizendo que no primeiro parametro passo 1 e no segundo qualquer número inteiro e vai retornar 5
 		Mockito.when(calc.somar(Mockito.eq(1), Mockito.anyInt())).thenReturn(5);
 		

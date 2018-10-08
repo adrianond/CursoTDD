@@ -4,10 +4,8 @@ import br.ce.wcaquino.entidades.Usuario;
 
 public class EmailServiceImpl implements EmailService {
 
-	@Override
 	public void notificarAtraso(Usuario usuario) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("Voce está com atraso usuário: " + usuario);
 	}
 
 }

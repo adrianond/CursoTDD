@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import br.ce.wcaquino.dao.LocacaoDAO;
-import br.ce.wcaquino.dao.LocacaoDAOFake;
+import br.ce.wcaquino.dao.LocacaoDAOImpl;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -17,15 +17,14 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoService {
 	
-	private LocacaoDAOFake dao;
+	private LocacaoDAO dao;
 	private SPCService spcService;
 	private EmailService emailService;
-	private EmailServiceImpl emailServiceImpl = new EmailServiceImpl();
 	
-	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes) throws FilmeSemEstoqueException, LocadoraException {
+	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes, Date dataEntrega, int dia) throws FilmeSemEstoqueException, LocadoraException {
 	
-		Locacao locacao = new Locacao();
 		Double valorTotal = 0d;
+		Locacao locacao = new Locacao();
 		Double precoDesconto = 0d;
 		
 		if(usuario == null) {
@@ -38,7 +37,7 @@ public class LocacaoService {
 		
 		for(Filme filme: filmes) {
 			if(filme.getEstoque() == 0) {
-				throw new FilmeSemEstoqueException();
+				throw new FilmeSemEstoqueException("Filme vazio");
 			}
 		}
 		
@@ -74,10 +73,8 @@ public class LocacaoService {
 		}
 		locacao.setValor(valorTotal);
 		
-		//Entrega no dia seguinte
-		Date dataEntrega = new Date();
-//	    adiciona dias do mês a data de entrega	
-		dataEntrega = adicionarDias(dataEntrega, 1);
+        //adiciona dias do mês a data de entrega	
+		dataEntrega = adicionarDias(dataEntrega, dia);
 		
 		if (DataUtils.verificarDiaSemana(dataEntrega, Calendar.SUNDAY)){
 			throw new LocadoraException("Não é possível entregar filmes ao Domingos");
@@ -92,15 +89,14 @@ public class LocacaoService {
 	public void notificarAtrasos(){
 		List<Locacao> locacoes = dao.obterLocacoesPendentes();
 		for(Locacao locacao: locacoes) {
-			if (locacao.getDataRetorno().after(new Date())) {
-				//emailServiceImpl.notificarAtraso(locacao.getUsuario());	
+			if (locacao.getDataRetorno().after(DataUtils.adicionarDias(locacao.getDataLocacao(), 3))) {
 				emailService.notificarAtraso(locacao.getUsuario());	
 			}
 		}
 	}
 
 	public void setLocacaoDao(LocacaoDAO dao) {
-		this.dao =  (LocacaoDAOFake) dao;
+		this.dao =  (LocacaoDAOImpl) dao;
 	}
 
 	public void setSPCService(SPCService spc) {
