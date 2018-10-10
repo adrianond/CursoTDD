@@ -16,18 +16,15 @@ import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.builders.LocacaoBuilder;
@@ -172,9 +169,11 @@ public class LocacaoServiceTest {
 	public void deveTestarEntregarDeFilmesAosDomingos() throws FilmeSemEstoqueException {
 		 //Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(), Calendar.SUNDAY));
 		 List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 4.0));
+		 int dia =  retonarDomingo(new Date());
+		 
 		
 		try {
-			service.alugarFilme(user, filmes, new Date(), 0);
+			service.alugarFilme(user, filmes, new Date(),dia);
 			Assert.fail();
 		}catch (LocadoraException e) {
 			Assert.assertEquals(e.getMessage(), "Não é possível entregar filmes ao Domingos");
@@ -187,6 +186,8 @@ public class LocacaoServiceTest {
 		 Locacao locacao = new LocacaoBuilder().getLocacao().build();
 		 locacao.setDataLocacao(new Date());
 		 locacao.setDataRetorno(obterDataComDiferencaDias(1));
+		 
+		
 		
 		 when(serviceMockado.alugarFilme(usuarioMockado, filmesMockado, new Date(), 2)).thenReturn(locacao);
       
@@ -342,5 +343,45 @@ public class LocacaoServiceTest {
 		
 		 List<Locacao> locacoes = Arrays.asList(locacao);
 		 return locacoes;
+	}
+	
+	private int retonarDomingo(Date data) {
+
+		int dia_semana = DataUtils.retornarDiaSemana(data);
+		int dia = 0;
+		
+		switch (dia_semana) {
+		//domingo
+		case 1:
+			dia = 0;
+			break;
+		//segunda	
+		case 2:
+			dia = 6;
+			break;
+		//terça	
+		case 3:
+			dia = 5;
+			break;
+		//quarta	
+		case 4:
+			dia = 4;
+			break;
+		//quinta	
+        case 5:
+        	dia = 3;
+			break;
+		//sexta	
+        case 6:
+        	dia = 2;
+			break;
+		//sábado	
+        case 7:
+        	dia = 1;
+			break;
+		default:
+			System.out.println("Data Inválida");
+		}
+		return dia;
 	}
 }

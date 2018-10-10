@@ -82,4 +82,15 @@ public class DataUtils {
 		calendar.setTime(data);
 		return calendar.get(DAY_OF_WEEK) == diaSemana;
 	}
+	
+	/**
+	 * 
+	 * @param data
+	 * @return
+	 */
+	public static int retornarDiaSemana(Date data) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(data);
+		return calendar.get(DAY_OF_WEEK);
+	}
 }
