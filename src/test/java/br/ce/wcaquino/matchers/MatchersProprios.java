@@ -13,7 +13,7 @@ public class MatchersProprios {
 		return new DiaSemanaMatcher(diaSemana);
 	}
 	
-	public static DiaSemanaMatcher hojeMaiUmDia(Integer numero) {
+	public static DiaSemanaMatcher addDias(Integer numero) {
 		Calendar calendar = Calendar.getInstance();
 		Date date =  DataUtils.obterDataComDiferencaDias(numero);
 		calendar.setTime(date);

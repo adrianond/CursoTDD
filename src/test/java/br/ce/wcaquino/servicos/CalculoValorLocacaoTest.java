@@ -28,6 +28,7 @@ import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
+import br.ce.wcaquino.exceptions.SpcServiceException;
 
 // classe utilizada para parametrizar os testes - estes testes são chamados de 'Testes Data Driven, ou Testes orintados a dados - são os testes nos quais parametrizamos os dados a serem usados em tais testes'
 //Utilizo essa classe para testar dois métodos da LocacaoService.java : devePagar75PctNoFilme3() e naoDevePagarctNoFilme1,
@@ -84,7 +85,7 @@ public class CalculoValorLocacaoTest {
 	}
 	
 	@Test
-	public void deveCalcularValorLocacaoConsiderandoDescontos() throws FilmeSemEstoqueException, LocadoraException{
+	public void deveCalcularValorLocacaoConsiderandoDescontos() throws FilmeSemEstoqueException, LocadoraException, SpcServiceException{
 		//cenario
 		Usuario usuario = new Usuario("Usuario 1");
 		

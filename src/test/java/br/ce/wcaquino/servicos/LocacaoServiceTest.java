@@ -21,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -35,6 +36,7 @@ import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoqueException;
 import br.ce.wcaquino.exceptions.LocadoraException;
+import br.ce.wcaquino.exceptions.SpcServiceException;
 import br.ce.wcaquino.matchers.MatchersProprios;
 import br.ce.wcaquino.utils.DataUtils;
 
@@ -104,7 +106,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void naoDeveAlugarFilmeSemEstoque() throws FilmeSemEstoqueException, LocadoraException{
+	public void naoDeveAlugarFilmeSemEstoque() throws Exception{
 		
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 4.0));
 
@@ -121,7 +123,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void naoDeveAlugarFilmeSemUsuario() throws LocadoraException, FilmeSemEstoqueException{
+	public void naoDeveAlugarFilmeSemUsuario() throws Exception{
 		
 		//acao
 		try {
@@ -136,7 +138,7 @@ public class LocacaoServiceTest {
 	}
 
 	@Test
-	public void naoDeveAlugarFilmeSemFilme() throws FilmeSemEstoqueException, LocadoraException{
+	public void naoDeveAlugarFilmeSemFilme() throws FilmeSemEstoqueException, LocadoraException, SpcServiceException{
 		
 		exception.expect(LocadoraException.class);
 		exception.expectMessage("Filme vazio");
@@ -146,7 +148,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void devePagar75PctNoFilme3() throws FilmeSemEstoqueException, LocadoraException{
+	public void devePagar75PctNoFilme3() throws FilmeSemEstoqueException, LocadoraException, SpcServiceException{
 		
 		 List<Filme> filmes = Arrays.asList(new Filme("Filme 3", 1, 4.0));
 		 Double d = 3.0;	
@@ -156,7 +158,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void naoDevePagarctNoFilme1() throws FilmeSemEstoqueException, LocadoraException{
+	public void naoDevePagarctNoFilme1() throws FilmeSemEstoqueException, LocadoraException, SpcServiceException{
 		
 		 List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 4.0));
 		 Double d = 0.0;	
@@ -166,7 +168,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void deveTestarEntregarDeFilmesAosDomingos() throws FilmeSemEstoqueException {
+	public void deveTestarEntregarDeFilmesAosDomingos() throws FilmeSemEstoqueException, SpcServiceException {
 		 //Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(), Calendar.SUNDAY));
 		 List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 4.0));
 		 int dia =  retonarDomingo(new Date());
@@ -181,27 +183,25 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
-	public void devoDevolverFilmeNoDiaSeguinte() throws FilmeSemEstoqueException, LocadoraException {
+	public void devoDevolverFilmeNoDiaSeguinte() throws FilmeSemEstoqueException, LocadoraException, SpcServiceException {
 		
 		 Locacao locacao = new LocacaoBuilder().getLocacao().build();
 		 locacao.setDataLocacao(new Date());
 		 locacao.setDataRetorno(obterDataComDiferencaDias(1));
 		 
-		
-		
 		 when(serviceMockado.alugarFilme(usuarioMockado, filmesMockado, new Date(), 2)).thenReturn(locacao);
       
 		//UTILIZO MEU PRÓPRIO MACHER PARA O TESTE - locacao.getDataRetorno() - fixo no código = d+1        
          assertThat(locacao.getDataRetorno(), MatchersProprios.caiEm(Calendar.SATURDAY));
         
         //soma mais um dia        
-        assertThat(locacao.getDataRetorno(), MatchersProprios.hojeMaiUmDia(1));
+        assertThat(locacao.getDataRetorno(), MatchersProprios.addDias(1));
         assertThat(locacao.getDataLocacao(), MatchersProprios.hoje(0));
 	}
 	
 	
 	@Test
-	public void naoDeveAlugarFilmeParaNegativadoSPC() throws LocadoraException, FilmeSemEstoqueException {
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws Exception {
 		
 		usuario.setNome("Usuario1");
 		Usuario usuario2 = new UsuarioBuilder().getUsuario().build();
@@ -271,6 +271,47 @@ public class LocacaoServiceTest {
 		//verifica se foi notificado algum usuario, qualquer usuário da instância de Usuario
 		//verify(email, Mockito.times(2)).notificarAtraso(Mockito.any(Usuario.class));
 		verify(email, Mockito.times(1)).notificarAtraso(Mockito.any(Usuario.class));
+	}
+	
+	@Test
+	public void deveTratarErronoSPC() throws SpcServiceException, FilmeSemEstoqueException, LocadoraException {
+		usuario.setNome("Usuario1");
+		Filme filme = new FilmeBuilder().getFilme().build();
+		filme.setEstoque(1);
+		filme.setNome("Filme1");
+		filme.setPrecoLocacao(4.0);
+		
+		List<Filme> filmes = Arrays.asList(filme);
+		
+		when(spc.possuiNegativacao(usuario)).thenThrow(new SpcServiceException("Falha catastrófica"));
+		
+		//verificacao
+		exception.expect(SpcServiceException.class);
+		exception.expectMessage("Problemas com SPC, tente novamente");
+		
+		//acao
+		service.alugarFilme(usuario, filmes, new Date(), 2);
+		
+	}
+	
+	@Test
+	public void deveProrrogarUmaLocacao(){
+		 Locacao locacao = new LocacaoBuilder().getLocacao().build();
+		 locacao.setDataLocacao(new Date());
+		 locacao.setDataRetorno(obterDataComDiferencaDias(2));
+		 locacao.setValor(12.0);
+		
+		//acao
+		service.prorrogarLocacao(locacao, 3);
+		
+		//captura os argumentos enviados para o método salvar, no caso um objeto Locação
+		ArgumentCaptor<Locacao> argCapt = ArgumentCaptor.forClass(Locacao.class);
+		Mockito.verify(dao).salvar(argCapt.capture());
+		Locacao locacaoRetornada = argCapt.getValue();
+		
+		error.checkThat(locacaoRetornada.getValor(), is(36.0));
+		error.checkThat(locacaoRetornada.getDataLocacao(), MatchersProprios.hoje(0));
+		error.checkThat(isMesmaData(locacao.getDataRetorno(), obterDataComDiferencaDias(2)), is(true));
 	}
 	
 	private List<Locacao> gerarDuasLocacoesSemAtraso(Usuario usuario){
