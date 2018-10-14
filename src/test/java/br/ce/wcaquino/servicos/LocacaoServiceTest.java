@@ -6,12 +6,13 @@ import static br.ce.wcaquino.utils.DataUtils.isMesmaData;
 import static br.ce.wcaquino.utils.DataUtils.obterDataComDiferencaDias;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.builders.LocacaoBuilder;
@@ -42,15 +44,29 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 	
-	@InjectMocks
+	/**
+	 * A diferença entre mock e Spy é que quando mock não sabe o que saber,ou seja, se você chamar o serviço desta maneira :
+	 * Mockito.when(calcMock.somar(1, 2)).thenReturn(5);
+	 * e depois testa - lo com parametros diferentes:
+	 * System.out.println("Mock:" + calcMock.somar(3, 2));
+	 * o @Mock retornará a resposta padrão para aquela classe nesse caso que é um Integer será igual 0 será  ou uma String vazia  quando for classe String
+	 * 
+	 * Já o @Spy executar o método com os parametros chamados no teste:
+	 * Mockito.when(calcSpy.somar(1, 2)).thenReturn(5);
+	 * e depois:
+	 * System.out.println("Spy:" + calcSpy.somar(2, 2));
+	 * retornará 4, somará os parametros
+	 *  IMPORTANTE - o @Spy nâo funciona com Interface, apenas classes pois ele chama a implementação do método
+	 *  
+	 *  IMPORTANTE - utilizo a anotação @Spy na instância do serviço para que seja possível utilizar os parametros passados 
+	 *  no teste 
+	 */
+	@InjectMocks @Spy
 	private LocacaoService service;
 	
 	@Mock
 	private LocacaoService serviceMockado;
 
-	@Mock
-	private Usuario user;
-	
 	@Mock
 	private SPCService spc;
 	
@@ -94,6 +110,7 @@ public class LocacaoServiceTest {
 		 locacao.setDataLocacao(new Date());
 		 locacao.setDataRetorno(obterDataComDiferencaDias(2));
 
+		 //desejo que o teste seja realizado com todos parametros de envio mokados, lembre - se que o objeto do método when deve ser mockado
 		 when(serviceMockado.alugarFilme(usuarioMockado, filmesMockado, new Date(), 2)).thenReturn(locacao);
 		
 		//verificacao
@@ -106,6 +123,45 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test
+	public void deveTestarDataRetornadaPeloMetodoObterData() throws Exception {
+		
+		usuario.setNome("Usuario1");
+		Filme filme = new FilmeBuilder().getFilme().build();
+		filme.setEstoque(1);
+		filme.setNome("Filme1");
+		filme.setPrecoLocacao(5.0);
+		List<Filme> filmes = Arrays.asList(filme);
+
+		 //como service utiliza a anotação @Spy, possível utilizar os valores passados por parametros no teste
+		//moko a data que deve ser retornada pelo método obterData() da classe de serviço que é chamado quando chama o método alugarFilme()
+		 Mockito.doReturn(DataUtils.obterData(28, 4, 2017)).when(service).obterData();
+		
+		 //como service utiliza a anotação @Spy, possível utilizar os valores passados por parametros no teste
+		 when(service.obterData()).thenReturn(DataUtils.obterData(28, 4, 2017));
+		
+		//acao
+		Locacao locacao = service.alugarFilme(usuario, filmes, new Date(), 2);
+			
+		//verificacao
+		error.checkThat(locacao.getValor(), is(equalTo(5.0)));
+		error.checkThat(isMesmaData(locacao.getDataLocacao(), DataUtils.obterData(28, 4, 2017)), is(true));
+	}
+	
+	@Test
+	public void deveTestarNomeUsuarioSemUsarMockito() throws Exception{
+		
+		 Usuario user = new Usuario("Usuario1");
+		 
+		//mocko o objeto Usuario retornado pelo método retornaNomeUsuario()
+		 Mockito.doReturn(user).when(service).retornaNomeUsuario();
+		 
+		 when(service.retornaNomeUsuario()).thenReturn(user);
+		
+		Usuario usuario = service.retornaNomeUsuario();
+		assertEquals(usuario.getNome(), user.getNome());
+	}
+	
+	@Test
 	public void naoDeveAlugarFilmeSemEstoque() throws Exception{
 		
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 4.0));
@@ -113,7 +169,7 @@ public class LocacaoServiceTest {
         //acao
 		try {
 			 //como preciso validar o lançamento da exceção do método alugarFilme(), preciso ter uma instancia da classe LocacaoService e não um mock da mesma
-			service.alugarFilme(user, filmes, new Date(), 2);
+			service.alugarFilme(usuarioMockado, filmes, new Date(), 2);
 			//Senão lançar a exceção, lança uma fail(), e quebra o teste			
 			Assert.fail();
 		} catch (FilmeSemEstoqueException e) {
@@ -144,7 +200,7 @@ public class LocacaoServiceTest {
 		exception.expectMessage("Filme vazio");
 		
 		//como preciso validar o lançamento da exceção do método alugarFilme(), preciso ter uma instancia da classe LocacaoService e não um mock da mesma
-		service.alugarFilme(user, null, new Date(), 2);
+		service.alugarFilme(usuarioMockado, null, new Date(), 2);
 	}
 	
 	@Test
@@ -153,7 +209,7 @@ public class LocacaoServiceTest {
 		 List<Filme> filmes = Arrays.asList(new Filme("Filme 3", 1, 4.0));
 		 Double d = 3.0;	
 		
-		Locacao locacao = service.alugarFilme(user, filmes, new Date(), 2);
+		Locacao locacao = service.alugarFilme(usuarioMockado, filmes, new Date(), 2);
 		Assert.assertEquals(locacao.getValor(), d);
 	}
 	
@@ -163,7 +219,7 @@ public class LocacaoServiceTest {
 		 List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 4.0));
 		 Double d = 0.0;	
 		
-		Locacao locacao = service.alugarFilme(user, filmes, new Date(), 2);
+		Locacao locacao = service.alugarFilme(usuarioMockado, filmes, new Date(), 2);
 		Assert.assertEquals(locacao.getValor(), d);
 	}
 	
@@ -175,7 +231,7 @@ public class LocacaoServiceTest {
 		 
 		
 		try {
-			service.alugarFilme(user, filmes, new Date(),dia);
+			service.alugarFilme(usuarioMockado, filmes, new Date(),dia);
 			Assert.fail();
 		}catch (LocadoraException e) {
 			Assert.assertEquals(e.getMessage(), "Não é possível entregar filmes ao Domingos");
@@ -192,7 +248,7 @@ public class LocacaoServiceTest {
 		 when(serviceMockado.alugarFilme(usuarioMockado, filmesMockado, new Date(), 2)).thenReturn(locacao);
       
 		//UTILIZO MEU PRÓPRIO MACHER PARA O TESTE - locacao.getDataRetorno() - fixo no código = d+1        
-         assertThat(locacao.getDataRetorno(), MatchersProprios.caiEm(Calendar.SATURDAY));
+        // assertThat(locacao.getDataRetorno(), MatchersProprios.caiEm(Calendar.SATURDAY));
         
         //soma mais um dia        
         assertThat(locacao.getDataRetorno(), MatchersProprios.addDias(1));
@@ -312,6 +368,31 @@ public class LocacaoServiceTest {
 		error.checkThat(locacaoRetornada.getValor(), is(36.0));
 		error.checkThat(locacaoRetornada.getDataLocacao(), MatchersProprios.hoje(0));
 		error.checkThat(isMesmaData(locacao.getDataRetorno(), obterDataComDiferencaDias(2)), is(true));
+	}
+	
+	@Test
+	public void deveTestarMetodoPrivadoSemPowerMock() throws Exception {
+
+		Filme filme = new FilmeBuilder().getFilme().build();
+		filme.setEstoque(1);
+		filme.setNome("Filme1");
+		filme.setPrecoLocacao(4.0);
+		Filme filme2 = new FilmeBuilder().getFilme().build();
+		filme2.setEstoque(2);
+		filme2.setNome("Filme2");
+		filme2.setPrecoLocacao(4.0);
+		
+
+		List<Filme> filmes = Arrays.asList(filme, filme2);
+
+		// uso a classe reflect do java para mokar a chamada de um método private
+		Class<LocacaoService> clazz = LocacaoService.class;
+		Method metodo = clazz.getDeclaredMethod("calcularValorTotal", List.class);
+		metodo.setAccessible(true);
+		Double valor = (Double) metodo.invoke(service, filmes);
+        
+		// verificacao
+		Assert.assertThat(valor, is(8.0));
 	}
 	
 	private List<Locacao> gerarDuasLocacoesSemAtraso(Usuario usuario){

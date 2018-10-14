@@ -52,7 +52,7 @@ public class LocacaoService {
 		
 		locacao.setFilmes(filmes);
 		locacao.setUsuario(usuario);
-		locacao.setDataLocacao(new Date());
+		locacao.setDataLocacao(obterData());
 		
 		for(Filme filme: filmes) {
 			
@@ -90,6 +90,10 @@ public class LocacaoService {
         dao.salvar(locacao);
 		return locacao;
 	}
+
+	protected Date obterData() {
+		return new Date();
+	}
 	
 	/**
 	 * 
@@ -100,7 +104,7 @@ public class LocacaoService {
 		Locacao novaLocacao = new Locacao();
 		novaLocacao.setUsuario(locacao.getUsuario());
 		novaLocacao.setFilmes(locacao.getFilmes());
-		novaLocacao.setDataLocacao(new Date());
+		novaLocacao.setDataLocacao(obterData());
 		novaLocacao.setDataRetorno(DataUtils.obterDataComDiferencaDias(dias));
 		novaLocacao.setValor(locacao.getValor() * dias);
 		dao.salvar(novaLocacao);
@@ -125,6 +129,27 @@ public class LocacaoService {
 	
 	public void setEmailService(EmailService email) {
 		emailService = email;
+	}
+	
+	public Usuario retornaNomeUsuario() {
+		Usuario user = new Usuario();
+		user.setNome("adriano");
+		return user;
+	}
+	
+	/**
+	 * 
+	 * @param filmes
+	 * @return
+	 */
+	private Double calcularValorTotal(List<Filme> filmes) {
+		Double valorTotal = 0d;
+		for (int i = 0; i < filmes.size(); i++) {
+			Filme filme = filmes.get(i);
+			Double valorFilme = filme.getPrecoLocacao();
+			valorTotal += valorFilme;
+		}
+		return valorTotal;
 	}
 	
 }
